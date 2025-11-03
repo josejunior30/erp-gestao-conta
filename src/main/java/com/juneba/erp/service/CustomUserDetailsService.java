@@ -1,5 +1,6 @@
 package com.juneba.erp.service;
 
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,10 +18,11 @@ public class CustomUserDetailsService implements UserDetailsService {
 	private UserRepository userRepository;
     
 
-	 @Override
-	    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-	        User user = userRepository.findByEmail(email)
-	                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
-	        return new SecurityUserDetails(user);
-	    }
+	@Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Optional<User> user = userRepository.findByEmail(email);
+        return user.map(SecurityUserDetails::new)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+    }
+
 }

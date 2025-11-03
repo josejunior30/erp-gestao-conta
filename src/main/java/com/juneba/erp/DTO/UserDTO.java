@@ -6,6 +6,9 @@ import java.util.Set;
 
 import com.juneba.erp.entities.User;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 
 public class UserDTO implements Serializable{
 	private static final long serialVersionUID = 1L;
@@ -13,6 +16,8 @@ public class UserDTO implements Serializable{
 	private Long id;
 	private String firstName;
 	private String lastName;
+	@Email(message="email invalido")
+	@NotBlank(message = "email obrigatório")
 	private String email;
 
 	private Set<RoleDTO>roles = new HashSet<>();
