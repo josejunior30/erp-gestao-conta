@@ -8,5 +8,45 @@
     "name": "app.jwt.expiration-seconds",
     "type": "java.lang.String",
     "description": "A description for 'app.jwt.expiration-seconds'"
+  },
+  {
+    "name": "app.jwt.private-key",
+    "type": "java.lang.String",
+    "description": "A description for 'app.jwt.private-key'"
+  },
+  {
+    "name": "app.jwt.public-key",
+    "type": "java.lang.String",
+    "description": "A description for 'app.jwt.public-key'"
+  },
+  {
+    "name": "app.jwt.private-key",
+    "type": "java.lang.String",
+    "description": "A description for 'app.jwt.private-key'"
+  },
+  {
+    "name": "pluggy.client-secret",
+    "type": "java.lang.String",
+    "description": "A description for 'pluggy.client-secret'"
+  },
+  {
+    "name": "pluggy.base-url",
+    "type": "java.lang.String",
+    "description": "A description for 'pluggy.base-url'"
+  },
+  {
+    "name": "pluggy.webhook-url",
+    "type": "java.lang.String",
+    "description": "A description for 'pluggy.webhook-url'"
+  },
+  {
+    "name": "pluggy.client-id",
+    "type": "java.lang.String",
+    "description": "A description for 'pluggy.client-id'"
+  },
+  {
+    "name": "pluggy.oauth.redirect-uri",
+    "type": "java.lang.String",
+    "description": "A description for 'pluggy.oauth.redirect-uri'"
   }
 ]}
