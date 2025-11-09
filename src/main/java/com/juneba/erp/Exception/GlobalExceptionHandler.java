@@ -57,4 +57,39 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("error", "credenciais inválidas"));
     }
+    
+    @ExceptionHandler(UpstreamException.class)
+    public ResponseEntity<Object> handleUpstream(UpstreamException ex, HttpServletRequest req) {
+        int us = ex.getHttpStatus();
+        HttpStatus mapped;
+        if (us == 400 || us == 404 || us == 409 || us == 422 || us == 429) {
+            mapped = HttpStatus.valueOf(us);
+        } else {
+            mapped = HttpStatus.BAD_GATEWAY; 
+        }
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("type", "https://errors.juneba.com/upstream-error");
+        body.put("title", mapped.is4xxClientError() ? "Erro de solicitação" : "Falha no provedor externo");
+        body.put("status", mapped.value());
+        body.put("detail", mapped.is4xxClientError() ? "Requisição inválida ao provedor" : "Comunicação com provedor falhou");
+        body.put("instance", req.getRequestURI());
+        body.put("upstreamStatus", us);
+        body.put("endpoint", ex.getEndpoint());
+        if (!mapped.is4xxClientError()) body.put("snippet", ex.getResponseSnippet()); 
+
+        return ResponseEntity.status(mapped).body(body);
+    }
+
+    @ExceptionHandler(UpstreamIoException.class)
+    public ResponseEntity<Object> handleUpstreamIo(UpstreamIoException ex, HttpServletRequest req) {
+        log.error("Upstream I/O path={} endpoint={} msg={}", req.getRequestURI(), ex.getEndpoint(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(Map.of(
+                        "type", "https://errors.juneba.com/upstream-io",
+                        "title", "Falha de comunicação com provedor externo",
+                        "status", 502,
+                        "endpoint", ex.getEndpoint()
+                ));
+    }
 }

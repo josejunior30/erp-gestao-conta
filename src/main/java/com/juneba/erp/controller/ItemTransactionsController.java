@@ -1,7 +1,6 @@
 package com.juneba.erp.controller;
 
 import java.time.LocalDate;
-
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -10,11 +9,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.juneba.erp.DTO.ItemDetailsDto;
 import com.juneba.erp.service.PluggyItemService;
 import com.juneba.erp.service.PluggyTransactionsHttpService;
+
+import jakarta.validation.constraints.NotBlank;
 
 @RestController
 @RequestMapping("/api/pluggy")
@@ -41,8 +41,10 @@ public class ItemTransactionsController {
 	        service.fetchAllTransactionsByItemId(itemId, from, to, status, pageSize)
 	    );
 	  }
-	  @GetMapping(value = "/items/{itemId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	  public ResponseEntity<ItemDetailsDto> getItem(@PathVariable String itemId) {
-	    return ResponseEntity.ok(pluggyItemService.fetchItemDetails(itemId));
-	  }
+	 @GetMapping(value = "/items/{itemId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	    public ResponseEntity<ItemDetailsDto> getItem(@PathVariable @NotBlank String itemId) {
+	        return ResponseEntity.ok(pluggyItemService.fetchItemDetails(itemId));
+	    }
+	 
+	
 }

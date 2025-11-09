@@ -63,7 +63,8 @@ public class SecurityFilterConfig {
                 .requestMatchers("/api/pluggy/connect-token").permitAll()
                 .requestMatchers("/api/webhooks/pluggy").permitAll()
                 .requestMatchers("/api/pluggy/items/**").permitAll()
-                .requestMatchers("/pluggy/accounts/**").permitAll()
+                
+                
                 .anyRequest().authenticated()
             )
             .userDetailsService(userDetailsService)
