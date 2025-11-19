@@ -43,7 +43,22 @@ public class UserDTO implements Serializable{
 		entity.getRoles().forEach(role -> this.roles.add(new RoleDTO(role)) );
 	}
 
+	// Constructor for UserDTO that will be used in the update test
+    public UserDTO(Long id, String firstName, String lastName, String email,  Set<RoleDTO> roles) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+       
+        this.roles = roles;
+    }
 
+    // Constructor for UserDTO that will be used in the insert test
+    public UserDTO(String firstName, String lastName, String email) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+    }
 	public Long getId() {
 		return id;
 	}

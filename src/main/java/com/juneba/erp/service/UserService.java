@@ -19,6 +19,8 @@ import com.juneba.erp.entities.User;
 import com.juneba.erp.repository.RoleRepository;
 import com.juneba.erp.repository.UserRepository;
 
+import jakarta.persistence.EntityNotFoundException;
+
 
 @Service
 public class UserService {
@@ -55,15 +57,15 @@ public class UserService {
 	    	return new UserDTO(entity);
 	    }
 	    
-	  @Transactional
-	    public UserDTO update(Long id, UserDTO dto) {
-	    	User entity = repository.getReferenceById(id);
-	    	copyDtoToEntity(dto, entity);
-	    	entity = repository.save(entity);
-			return new UserDTO(entity);
-	    }
+	    
+		  @Transactional
+		    public UserDTO update(Long id, UserDTO dto) {
+		    	User entity = repository.getReferenceById(id);
+		    	copyDtoToEntity(dto, entity);
+		    	entity = repository.save(entity);
+				return new UserDTO(entity);
+		    }
 
-	
 	    
     public void delete(Long id) {
     	repository.deleteById(id);

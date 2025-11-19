@@ -10,7 +10,10 @@ public class UserInsertDTO extends UserDTO{
 		super();
 	}
 
-
+	 public UserInsertDTO(String firstName, String lastName, String email, String password) {
+	        super(firstName, lastName, email); // Call the parent constructor
+	        this.password = password;
+	    }
 	public String getPassword() {
 		return password;
 	}
