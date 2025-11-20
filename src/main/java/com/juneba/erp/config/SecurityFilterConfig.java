@@ -37,6 +37,7 @@ public class SecurityFilterConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
         cfg.setAllowedOrigins(List.of("http://localhost:5173", "http://127.0.0.1:5173"));
+      
         cfg.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         cfg.setAllowedHeaders(List.of("Authorization","Content-Type","X-Requested-With","X-API-KEY"));
         cfg.setExposedHeaders(List.of("Authorization","Location"));
@@ -61,7 +62,7 @@ public class SecurityFilterConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/auth/login", "/h2-console/**").permitAll()
                 .requestMatchers("/api/pluggy/connect-token").permitAll()
-                .requestMatchers("/api/webhooks/pluggy").permitAll()
+                .requestMatchers("/pluggy/webhook/**").permitAll()
                 .requestMatchers("/api/pluggy/items/**").permitAll()
                 
                 
