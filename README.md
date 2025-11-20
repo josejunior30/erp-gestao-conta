@@ -11,6 +11,12 @@ Este projeto é uma API backend construída com **Spring Boot 3** e **Java 21** 
 
 O objetivo é demonstrar, de forma prática, como estruturar uma API segura, integrando com um provedor externo financeiro (Pluggy), com código testável (JUnit + Mockito) e configuração limpa via `@ConfigurationProperties`.
 
+> 🔑 **Pré-requisito Pluggy:**  
+> Para usar a integração de Open Finance, é necessário criar uma conta na **Pluggy**, registrar uma aplicação no dashboard e obter o **clientId** e o **clientSecret**.  
+> Esses valores devem ser configurados em `application.properties` (ou no profile correspondente) nas propriedades:
+> - `pluggy.client-id`
+> - `pluggy.client-secret`
+
 ---
 
 ## 2. Funcionalidades principais
