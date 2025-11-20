@@ -41,6 +41,7 @@ public class ItemTransactionsController {
 	        service.fetchAllTransactionsByItemId(itemId, from, to, status, pageSize)
 	    );
 	  }
+	
 	 @GetMapping(value = "/items/{itemId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	    public ResponseEntity<ItemDetailsDto> getItem(@PathVariable @NotBlank String itemId) {
 	        return ResponseEntity.ok(pluggyItemService.fetchItemDetails(itemId));
