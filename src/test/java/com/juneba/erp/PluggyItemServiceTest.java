@@ -27,13 +27,13 @@ public class PluggyItemServiceTest {
     private PluggyProperties props;
     private PluggyItemService service;
 
-    @BeforeEach
+   /* @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
         props = new PluggyProperties();
         props.setBaseUrl("https://api.pluggy.ai");
         service = new PluggyItemService(client, auth, props);
-    }
+    }*/
 
     @Test
     void deveBuscarItemComSucesso() throws Exception {

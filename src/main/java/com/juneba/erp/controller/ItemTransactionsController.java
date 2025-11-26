@@ -1,6 +1,8 @@
 package com.juneba.erp.controller;
 
 import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.juneba.erp.DTO.ItemDetailsDto;
+import com.juneba.erp.DTO.TransactionSummaryDto;
 import com.juneba.erp.service.PluggyItemService;
 import com.juneba.erp.service.PluggyTransactionsHttpService;
 
@@ -30,22 +33,27 @@ public class ItemTransactionsController {
 
 
 	@GetMapping(value = "/items/{itemId}/transactions", produces = MediaType.APPLICATION_JSON_VALUE)
-	  public ResponseEntity<JsonNode> listAllByItemId(
-	      @PathVariable String itemId,
-	      @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate from,
-	      @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate to,
-	      @RequestParam(required = false) String status,
-	      @RequestParam(required = false) Integer pageSize
-	  ) {
-	    return ResponseEntity.ok(
-	        service.fetchAllTransactionsByItemId(itemId, from, to, status, pageSize)
-	    );
-	  }
-	
+    public ResponseEntity<TransactionSummaryDto> listAllByItemId(
+            @PathVariable String itemId,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate to,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Integer pageSize
+    ) {
+        return ResponseEntity.ok(
+                service.fetchAllTransactionsByItemIdPretty(itemId, from, to, status, pageSize)
+        );
+    }
 	 @GetMapping(value = "/items/{itemId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	    public ResponseEntity<ItemDetailsDto> getItem(@PathVariable @NotBlank String itemId) {
 	        return ResponseEntity.ok(pluggyItemService.fetchItemDetails(itemId));
 	    }
+	 
+	 // itens salvos no banco
+	  @GetMapping(value = "/items", produces = MediaType.APPLICATION_JSON_VALUE)
+	  public ResponseEntity<List<ItemDetailsDto>> listAllItemsFromDatabase() {
+	    return ResponseEntity.ok(pluggyItemService.listAllItemDetailsFromDb());
+	  }
 	 
 	
 }

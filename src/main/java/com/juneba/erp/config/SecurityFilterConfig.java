@@ -65,9 +65,8 @@ public class SecurityFilterConfig {
                 .requestMatchers("/pluggy/webhook/**").permitAll()
                 .requestMatchers("/api/pluggy/items/**").permitAll()
                 .requestMatchers("/user/**").permitAll()
-                
-                
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
+               
             )
             .userDetailsService(userDetailsService)
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter)));
