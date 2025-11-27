@@ -30,17 +30,16 @@ public class ItemTransactionsController {
 		this.pluggyItemService = pluggyItemService;
 	}
 
-
-	@GetMapping(value = "/items/{itemId}/transactions", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TransactionSummaryDto> listAllByItemId(
-            @PathVariable String itemId,
+	@GetMapping(value = "/accounts/{accountId}/transactions", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<TransactionSummaryDto> listAllByAccountId(
+            @PathVariable @NotBlank String accountId,
             @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate to,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Integer pageSize
     ) {
         return ResponseEntity.ok(
-                service.fetchAllTransactionsByItemIdPretty(itemId, from, to, status, pageSize)
+                service.fetchAllTransactionsByAccountIdPretty(accountId, from, to, status, pageSize)
         );
     }
 	 @GetMapping(value = "/items/{itemId}", produces = MediaType.APPLICATION_JSON_VALUE)

@@ -8,13 +8,13 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -45,9 +45,13 @@ public class PluggyTransactionsHttpService {
 		this.pluggyAuthService = pluggyAuthService;
 		this.pluggyProperties = pluggyProperties;
 	}
+
 	// Busca todas as transações de um item e devolve um JSON cru com a lista completa.
-	public com.fasterxml.jackson.databind.node.ObjectNode fetchAllTransactionsByItemId(String itemId, LocalDate from,
-			LocalDate to, String status, Integer pageSize) {
+	public com.fasterxml.jackson.databind.node.ObjectNode fetchAllTransactionsByAccountId(String accountId,
+			LocalDate from, LocalDate to, String status, Integer pageSize) {
+
+		if (accountId == null || accountId.isBlank())
+			throw new IllegalArgumentException("accountId é obrigatório");
 
 		ZoneId zone = ZoneId.of("America/Sao_Paulo");
 		Instant fromInstant = (from != null) ? from.atStartOfDay(zone).toInstant() : null;
@@ -56,29 +60,21 @@ public class PluggyTransactionsHttpService {
 		int size = (pageSize == null || pageSize < 1) ? 500 : Math.min(pageSize, 500);
 		String apiKey = pluggyAuthService.getApiKey();
 
-		ArrayNode accounts = listAllAccountsByItem(itemId, size, apiKey);
-		ArrayNode allTxs = mapper.createArrayNode();
-
-		for (JsonNode acc : accounts) {
-			String accountId = acc.path("id").asText(null);
-			if (accountId == null || accountId.isBlank())
-				continue;
-			ArrayNode txs = listAllTransactionsByAccount(accountId, fromInstant, toInstant, status, size, apiKey);
-			allTxs.addAll(txs);
-		}
+		ArrayNode allTxs = listAllTransactionsByAccount(accountId, fromInstant, toInstant, status, size, apiKey);
 
 		var out = mapper.createObjectNode();
-		out.put("itemId", itemId);
+		out.put("accountId", accountId);
 		out.put("count", allTxs.size());
 		out.set("transactions", allTxs);
 		return out;
 	}
+
 	// Busca as transações e devolve um resumo (totais, ordenação, etc.).
-	public TransactionSummaryDto fetchAllTransactionsByItemIdPretty(String itemId, LocalDate from, LocalDate to,
+	public TransactionSummaryDto fetchAllTransactionsByAccountIdPretty(String accountId, LocalDate from, LocalDate to,
 			String status, Integer pageSize) {
 
-		if (itemId == null || itemId.isBlank())
-			throw new IllegalArgumentException("itemId é obrigatório");
+		if (accountId == null || accountId.isBlank())
+			throw new IllegalArgumentException("accountId é obrigatório");
 
 		ZoneId zone = ZoneId.of("America/Sao_Paulo");
 		Instant fromInstant = (from != null) ? from.atStartOfDay(zone).toInstant() : null;
@@ -87,17 +83,14 @@ public class PluggyTransactionsHttpService {
 		int size = (pageSize == null || pageSize < 1) ? 500 : Math.min(pageSize, 500);
 		String apiKey = pluggyAuthService.getApiKey();
 
-		ArrayNode accountsJson = listAllAccountsByItem(itemId, size, apiKey);
-		Map<String, AccountLiteDto> accounts = toAccountMap(accountsJson);
+		AccountLiteDto acc = getAccountLite(accountId, apiKey);
 
-		List<UserTransactionDto> txDtos = new ArrayList<>();
-		for (String accountId : accounts.keySet()) {
-			ArrayNode txs = listAllTransactionsByAccount(accountId, fromInstant, toInstant, status, size, apiKey);
-			for (JsonNode t : txs) {
-				AccountLiteDto acc = accounts.get(accountId);
-				UserTransactionDto dto = toUserTransactionDto(t, acc, zone);
-				txDtos.add(dto);
-			}
+		ArrayNode txs = listAllTransactionsByAccount(accountId, fromInstant, toInstant, status, size, apiKey);
+
+		List<UserTransactionDto> txDtos = new ArrayList<>(txs.size());
+		for (JsonNode t : txs) {
+			UserTransactionDto dto = toUserTransactionDto(t, acc, zone);
+			txDtos.add(dto);
 		}
 
 		BigDecimal totalInflow = txDtos.stream().map(UserTransactionDto::amount).filter(Objects::nonNull)
@@ -109,41 +102,17 @@ public class PluggyTransactionsHttpService {
 		BigDecimal net = txDtos.stream().map(UserTransactionDto::amount).filter(Objects::nonNull)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 
-
 		List<UserTransactionDto> ordered = txDtos.stream().sorted(Comparator
 				.comparing(UserTransactionDto::dateTime, Comparator.nullsLast(Comparator.naturalOrder())).reversed()
 				.thenComparing(u -> u.amount() == null ? BigDecimal.ZERO : u.amount().abs(), Comparator.reverseOrder()))
 				.toList();
 
-		return new TransactionSummaryDto(itemId, from, to, ordered.size(), totalInflow, totalOutflow, net,
-				ordered);
+		return new TransactionSummaryDto(accountId, from, to, ordered.size(), totalInflow, totalOutflow, net, ordered);
 	}
-	// Lista todas as contas de um item, página por página, e junta tudo.
-	private ArrayNode listAllAccountsByItem(String itemId, int pageSize, String apiKey) {
-		ArrayNode accs = mapper.createArrayNode();
-		int page = 1;
-		while (true) {
-			HttpUrl url = HttpUrl.parse(pluggyProperties.getBaseUrl() + "/accounts").newBuilder()
-					.addQueryParameter("itemId", itemId).addQueryParameter("page", String.valueOf(page))
-					.addQueryParameter("pageSize", String.valueOf(pageSize)).build();
 
-			Request req = new Request.Builder().url(url).get().header("X-API-KEY", apiKey).build();
-
-			ArrayNode pageResults = executeArray(req, "results", "accounts");
-			if (pageResults.isEmpty())
-				break;
-
-			accs.addAll(pageResults);
-			if (pageResults.size() < pageSize)
-				break;
-			page++;
-		}
-		return accs;
-	}
 	// Lista todas as transações de uma conta, respeitando filtros e paginação.
 	private ArrayNode listAllTransactionsByAccount(String accountId, Instant from, Instant to, String status,
 			int pageSize, String apiKey) {
-
 		ArrayNode txs = mapper.createArrayNode();
 		int page = 1;
 		while (true) {
@@ -170,6 +139,7 @@ public class PluggyTransactionsHttpService {
 		}
 		return txs;
 	}
+
 	// Executa a chamada HTTP e retorna o array do JSON (ou vazio); trata erros.
 	private ArrayNode executeArray(Request req, String primaryArrayField, String fallbackArrayField) {
 		long t0 = System.nanoTime();
@@ -177,8 +147,7 @@ public class PluggyTransactionsHttpService {
 			long ms = (System.nanoTime() - t0) / 1_000_000;
 			if (!resp.isSuccessful()) {
 				String body = (resp.body() != null) ? formatPluggyText.safeTrim(resp.body().string(), 512) : "";
-				// Por quê: logar corpo curto para troubleshooting sem poluir logs
-				log.warn("HTTP {} {} ({} ms) body='{}'", resp.code(), req.url(), ms, body);
+				log.warn("HTTP {} {} ({} ms) body='{}'", resp.code(), req.url(), ms, body); // Por quê: diagnóstico
 				throw new IllegalStateException("Falha HTTP " + resp.code() + " em " + req.url());
 			}
 			String raw = Objects.requireNonNull(resp.body()).string();
@@ -193,22 +162,46 @@ public class PluggyTransactionsHttpService {
 			throw new RuntimeException("Erro de I/O em chamada Pluggy", e);
 		}
 	}
-	// Converte o JSON de contas para um mapa de DTOs com dados básicos.
-	private Map<String, AccountLiteDto> toAccountMap(ArrayNode accountsJson) {
-		Map<String, AccountLiteDto> map = new HashMap<>();
-		for (JsonNode a : accountsJson) {
-			String id = a.path("id").asText(null);
-			if (id == null)
-				continue;
-			String name = formatPluggyText.firstNonEmpty(a.path("name").asText(null), a.path("number").asText(null),
-					"Conta");
-			String type = a.path("type").asText(null);
-			String last4 = formatPluggyText.last4(a.path("number").asText(null), a.path("mask").asText(null));
-			map.put(id, new AccountLiteDto(id, name, type, last4));
-		}
-		return map;
+
+	// Busca os dados básicos de uma conta (nome, tipo e últimos dígitos),para
+	// enriquecer as transações com contexto do cartão/conta.
+	private AccountLiteDto getAccountLite(String accountId, String apiKey) {
+		HttpUrl url = HttpUrl.parse(pluggyProperties.getBaseUrl() + "/accounts/" + accountId).newBuilder().build();
+
+		Request req = new Request.Builder().url(url).get().header("X-API-KEY", apiKey).build();
+
+		JsonNode json = executeObject(req);
+		String id = json.path("id").asText(null);
+		if (id == null)
+			return null;
+
+		String name = formatPluggyText.firstNonEmpty(json.path("name").asText(null), json.path("number").asText(null),
+				"Conta");
+		String type = json.path("type").asText(null);
+		String last4 = formatPluggyText.last4(json.path("number").asText(null), json.path("mask").asText(null));
+		return new AccountLiteDto(id, name, type, last4);
 	}
-	
+
+	// Executa uma requisição HTTP que deve retornar um objeto JSON e o parseia em
+	// JsonNode.
+	// Em erro HTTP, registra um log curto do corpo e lança exceção.
+	private JsonNode executeObject(Request req) {
+		long t0 = System.nanoTime();
+		try (Response resp = okHttpClient.newCall(req).execute()) {
+			long ms = (System.nanoTime() - t0) / 1_000_000;
+			if (!resp.isSuccessful()) {
+				String body = (resp.body() != null) ? formatPluggyText.safeTrim(resp.body().string(), 512) : "";
+				log.warn("HTTP {} {} ({} ms) body='{}'", resp.code(), req.url(), ms, body);
+				throw new IllegalStateException("Falha HTTP " + resp.code() + " em " + req.url());
+			}
+			String raw = Objects.requireNonNull(resp.body()).string();
+			return mapper.readTree(raw);
+		} catch (IOException e) {
+			log.error("Erro I/O em {}: {}", req.url(), e.getMessage(), e);
+			throw new RuntimeException("Erro de I/O em chamada Pluggy", e);
+		}
+	}
+
 	// Transforma um JSON de transação em um DTO amigável para a aplicação.
 	private UserTransactionDto toUserTransactionDto(JsonNode t, AccountLiteDto acc, ZoneId zone) {
 		String id = t.path("id").asText(null);
@@ -234,6 +227,4 @@ public class PluggyTransactionsHttpService {
 		return new UserTransactionDto(id, dateTime, description, merchantName, category, type, amount, amountFormatted,
 				currency, status, acc);
 	}
-	
-	
 }
