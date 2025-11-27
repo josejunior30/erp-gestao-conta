@@ -2,15 +2,18 @@ package com.juneba.erp.controller;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.juneba.erp.DTO.ItemDetailsDto;
 import com.juneba.erp.DTO.TransactionSummaryDto;
 import com.juneba.erp.service.PluggyItemService;
@@ -52,5 +55,10 @@ public class ItemTransactionsController {
 	    public ResponseEntity<List<ItemDetailsDto>> listAllItemsFromDatabase() {
 	        return ResponseEntity.ok(pluggyItemService.listAllItemDetailsFromDb());
 	    }
-	
+	    @DeleteMapping(value = "/items", produces = MediaType.APPLICATION_JSON_VALUE)
+	    public ResponseEntity<Map<String, Object>> deleteAllItemsFromDatabase() {
+	        int deleted = pluggyItemService.deleteAllItemIdsFromDb();
+	   
+	        return ResponseEntity.ok(Map.of("deleted", deleted));
+	    }
 }

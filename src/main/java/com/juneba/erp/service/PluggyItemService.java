@@ -27,6 +27,8 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import com.juneba.erp.util.formatPluggyText;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class PluggyItemService {
 	private static final Logger log = LoggerFactory.getLogger(PluggyItemService.class);
@@ -160,4 +162,17 @@ public class PluggyItemService {
 			return List.of();
 		}
 	}
+	
+	@Transactional
+    public int deleteAllItemIdsFromDb() {
+        // por quê: deleta em lote quando suportado, evitando carregar entidades na memória
+        long count = pluggyItemRepository.count();
+        try {
+            pluggyItemRepository.deleteAllInBatch(); // JpaRepository
+        } catch (UnsupportedOperationException ex) {
+            pluggyItemRepository.deleteAll(); // fallback
+        }
+        log.info("Removidos {} PluggyItem(s) do banco.", count);
+        return (int) Math.min(count, Integer.MAX_VALUE);
+    }
 }
