@@ -17,9 +17,12 @@ public class formatPluggyText {
         for (String v : vals) if (v != null && !v.isBlank()) return v;
         return null;
     }
+    
+ 
 
     public static String safeTrim(String s, int max) {
         if (s == null) return "null";
         return s.length() <= max ? s : s.substring(0, max) + "…";
     }
+
 }

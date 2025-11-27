@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.juneba.erp.DTO.ItemDetailsDto;
 import com.juneba.erp.DTO.TransactionSummaryDto;
 import com.juneba.erp.service.PluggyItemService;
@@ -50,10 +49,9 @@ public class ItemTransactionsController {
 	    }
 	 
 	 // itens salvos no banco
-	  @GetMapping(value = "/items", produces = MediaType.APPLICATION_JSON_VALUE)
-	  public ResponseEntity<List<ItemDetailsDto>> listAllItemsFromDatabase() {
-	    return ResponseEntity.ok(pluggyItemService.listAllItemDetailsFromDb());
-	  }
-	 
+	   @GetMapping(value = "/items", produces = MediaType.APPLICATION_JSON_VALUE)
+	    public ResponseEntity<List<ItemDetailsDto>> listAllItemsFromDatabase() {
+	        return ResponseEntity.ok(pluggyItemService.listAllItemDetailsFromDb());
+	    }
 	
 }
