@@ -189,3 +189,9 @@ Entidade de persistência:
     "count": 42,
     "transactions": [ ... ]
   }
+  
+#### 2.3.5. Integração com o Frontend
+
+- Repositório do frontend: **[josejunior30/erp-conta-FrontEnd](https://github.com/josejunior30/erp-conta-FrontEnd)**
+
+
